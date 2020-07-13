@@ -22,6 +22,15 @@ public class State {
 		this.population = population;
 		this.neighbors = neighbors;
 	}
+	
+	
+
+	public State(String id) {
+		super();
+		this.id = id;
+	}
+
+
 
 	public String getId() {
 		return id;
@@ -89,7 +98,7 @@ public class State {
 
 	@Override
 	public String toString() {
-		return name;
+		return id;
 	}
 
 	@Override
