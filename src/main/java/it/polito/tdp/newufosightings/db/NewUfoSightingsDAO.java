@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.polito.tdp.newufosightings.model.Arco;
 import it.polito.tdp.newufosightings.model.Collegamento;
 import it.polito.tdp.newufosightings.model.Sighting;
 import it.polito.tdp.newufosightings.model.State;
@@ -98,7 +99,7 @@ public class NewUfoSightingsDAO {
 	public ArrayList<Collegamento> getAllCollegamenti(String forma, int anno) {
 		String sql = "SELECT n.state1, n.state2, COUNT(*) AS conto " + 
 				"FROM neighbor n, sighting s1, sighting s2 " + 
-				"WHERE n.state1>n.state2 AND s1.shape=? AND s2.shape=? AND YEAR(s1.datetime)=? AND YEAR(s1.datetime)=? AND s1.state=n.state1 AND s2.state=n.state2 " + 
+				"WHERE n.state1>n.state2 AND s1.shape=? AND s2.shape=? AND YEAR(s1.datetime)=? AND YEAR(s2.datetime)=? AND s1.state=n.state1 AND s2.state=n.state2 " + 
 				"GROUP BY n.state1,n.state2 ";
 		ArrayList<Collegamento> result = new ArrayList<Collegamento>();
 
@@ -145,6 +146,31 @@ public class NewUfoSightingsDAO {
 						res.getInt("duration"), res.getString("duration_hm"), res.getString("comments"),
 						res.getDate("date_posted").toLocalDate(), res.getDouble("latitude"),
 						res.getDouble("longitude")));
+			}
+
+			conn.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+
+		return list;
+	}
+
+	public ArrayList<Arco> getAllArchi() {
+		String sql = "SELECT * " + 
+				"FROM neighbor ";
+		ArrayList<Arco> list = new ArrayList<Arco>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);	
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				list.add(new Arco (new State(res.getString("state1").toLowerCase()),(new State(res.getString("state2").toLowerCase()))));
 			}
 
 			conn.close();

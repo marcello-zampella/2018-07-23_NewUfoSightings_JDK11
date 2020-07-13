@@ -33,11 +33,17 @@ public class Model {
 		grafo=new SimpleWeightedGraph<State, DefaultWeightedEdge>(DefaultWeightedEdge.class);
 		Graphs.addAllVertices(grafo, stati);
 		ArrayList<Collegamento> collegamenti=dao.getAllCollegamenti(forma,anno);
+		for(Arco a:dao.getAllArchi()) {
+			//grafo.addEdge(a.getS1(), a.getS2());
+			Graphs.addEdge(grafo, a.getS1(), a.getS2(), 0);
+		}
 		for(Collegamento c: collegamenti) {
-			Graphs.addEdge(grafo, c.getS1(), c.getS2(), c.getPeso());
+			DefaultWeightedEdge e=grafo.getEdge(c.getS1(), c.getS2());
+			grafo.setEdgeWeight(e, c.getPeso());
 		}
 		
 		avvistamenti=dao.getAvvistamentiByAnno(forma,anno);
+		System.out.println(grafo.vertexSet().size()+"nodi e archi "+grafo.edgeSet().size());
 	
 	}
 
