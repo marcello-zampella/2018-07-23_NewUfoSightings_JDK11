@@ -1,9 +1,14 @@
 package it.polito.tdp.newufosightings;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
+
 import it.polito.tdp.newufosightings.model.Model;
+import it.polito.tdp.newufosightings.model.State;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,7 +38,7 @@ public class FXMLController {
     private Button btnSelezionaAnno;
 
     @FXML
-    private ComboBox<?> cmbBoxForma;
+    private ComboBox<String> cmbBoxForma;
 
     @FXML
     private Button btnCreaGrafo;
@@ -49,18 +54,86 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	String s=this.cmbBoxForma.getValue();
+    	if(s==null) {
+    		this.txtResult.setText("FAI UNA SCELTA!");
+    		return;
+    	}
+    	this.model.creaGrafo(s,Integer.parseInt(this.txtAnno.getText()));
+    	
+    	SimpleWeightedGraph<State, DefaultWeightedEdge> grafo=model.getGrafo();
+    	for(State state: grafo.vertexSet()) {
+    		this.txtResult.appendText("\n somma pesi archi stato "+state+": ");
+    		int somma=0;
+    		for(DefaultWeightedEdge e:grafo.outgoingEdgesOf(state)) {
+    			somma+=grafo.getEdgeWeight(e);
+    		}
+    		this.txtResult.appendText(""+somma+"\n");
+    	}
+    	
+    	
+		this.btnSimula.setDisable(false);
+    	
     }
 
     @FXML
     void doSelezionaAnno(ActionEvent event) {
+    	String s=this.txtAnno.getText();
+    	if(!this.isInteger(s)) {
+    		this.txtResult.setText("INSERISCI VALORE INTERO \n");
+    		return;
+    	}
+    	int anno=Integer.parseInt(s);
+    	if(anno<1910 || anno>2014) {
+    		this.txtResult.setText("INSERISCI VALORE INTERO COMPRESO TRA 1910 E 2014 \n");
+    		return;
+    	}
+    	this.cmbBoxForma.getItems().clear();
+    	this.cmbBoxForma.getItems().addAll(model.getForma(anno));
+		this.btnCreaGrafo.setDisable(false);
+
+
+    
 
     }
 
     @FXML
     void doSimula(ActionEvent event) {
+    	String giornis=this.txtT1.getText();
+    	String alfas=this.txtAlfa.getText();
+    	if(!this.isInteger(giornis) || !this.isInteger(alfas)) {
+    		this.txtResult.appendText("DEVI INSERIRE UN NUMERO INTERO SIA PER T1 CHE PER ALFA \n");
+    		return;
+    	}
+    	int giorni=Integer.parseInt(giornis);
+    	if(giorni<1 || giorni>364) {
+    		this.txtResult.appendText("GIORNI NUMERO POSITIVO DIVERSO DA 0 MINORE DI 365 \n");
+    		return;
+    	}
+    	int alfa=Integer.parseInt(alfas);
+    	if(alfa<0 || alfa>100) {
+    		this.txtResult.appendText("ALFA NUMERO POSITIVO MINORE O UGUALE A 100 \n");
+    		return;
+    	}
+    	
+    	HashMap<State,Double> risultato=model.simula(giorni,alfa);
+    	this.txtResult.appendText("\n ** RISULTATI SIMULAZIONE ** \n");
+    	for(State stato: risultato.keySet()) {
+    		this.txtResult.appendText(stato+" DEFCON FINALE="+risultato.get(stato)+"\n");
+    	}
+
 
     }
+    
+    public static boolean isInteger(String str) { 
+	  	  try {  
+	  	    Integer.parseInt(str);  
+	  	    return true;
+	  	  } catch(NumberFormatException e){  
+	  	    return false;  
+	  	  }  
+	  	}
+	
 
     @FXML
     void initialize() {
@@ -77,5 +150,7 @@ public class FXMLController {
 
 	public void setModel(Model model) {
 		this.model = model;
+		this.btnCreaGrafo.setDisable(true);
+		this.btnSimula.setDisable(true);
 	}
 }
